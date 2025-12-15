@@ -1,0 +1,2 @@
+[server]
+folderWatchBlacklist = ['astrology_app.db', 'astrology_app.db-journal', 'astrology_app.db-wal', '*.db*', '*.sqlite']

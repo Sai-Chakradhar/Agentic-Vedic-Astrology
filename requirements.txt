@@ -1,0 +1,12 @@
+streamlit
+google-generativeai
+geopy
+timezonefinder
+jyotishyamitra
+pytz
+pyswisseph
+plotly
+pandas
+pymongo
+dnspython
+certifi
