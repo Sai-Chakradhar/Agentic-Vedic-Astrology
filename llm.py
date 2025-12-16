@@ -105,7 +105,7 @@ Instructions:
 3. Pay close attention to the Vimshottari Dasha (Mahadasha/Antardasha) if relevant to the timing of the query. (Look for 'dasha' keys in the data).
 4. Be accurate, empathetic, and insightul.
 5. If the query is about specific timing, correlate with the Dasha periods provided.
-
+6. Try to answer it little information about the charts and more information on the intent. please follow this. 
 Answer:
 """
     
