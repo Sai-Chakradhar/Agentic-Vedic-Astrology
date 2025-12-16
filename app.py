@@ -22,12 +22,13 @@ st.set_page_config(
 # --- MongoDB Connection ---
 @st.cache_resource
 def init_connection(uri):
-    import ssl
+    import certifi
     return pymongo.MongoClient(
         uri,
         tls=True,
-        tlsAllowInvalidCertificates=True,
-        serverSelectionTimeoutMS=5000
+        tlsCAFile=certifi.where(),
+        serverSelectionTimeoutMS=10,
+        retryWrites=False  # Can help with some TLS handshake issues
     )
 
 def main():
@@ -75,6 +76,10 @@ def main():
     # --- Authentication ---
     if 'username' not in st.session_state:
         st.session_state['username'] = None
+    
+    # Initialize chart_data if not present
+    if 'chart_data' not in st.session_state:
+        st.session_state['chart_data'] = None
 
     if st.session_state['username'] is None:
         choice = st.selectbox("Login / Signup", ["Login", "Signup"])
@@ -148,10 +153,16 @@ def main():
             def_city = "New Delhi, India"
 
         name = st.text_input("Name", value=def_name)
-        dob = st.date_input("Date of Birth", value=def_dob)
+        current_year = datetime.datetime.now().year
+        dob = st.date_input(
+            "Date of Birth", 
+            value=def_dob,
+            min_value=datetime.date(current_year - 100, 1, 1),
+            max_value=datetime.date(current_year + 100, 12, 31)
+        )
         birth_time = st.time_input("Time of Birth", value=def_time)
         city = st.text_input("City of Birth", value=def_city)
-        
+
         save_checkbox = st.checkbox("Save Profile after Generation")
         generate_btn = st.button("Generate Birth Chart", type="primary")
 
@@ -308,11 +319,94 @@ def main():
 
             html_chart = f"""
             <style>
-                .chart-grid {{ display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; grid-template-rows: 100px 100px 100px 100px; gap: 2px; background-color: #000; border: 2px solid #000; width: 100%; max-width: 500px; margin: auto; }}
-                .chart-box {{ background-color: #ffffff; color: #000000; padding: 5px; font-size: 14px; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; border: 1px solid #ccc; position: relative; }}
-                .chart-label {{ font-size: 10px; color: #555; position: absolute; top: 2px; left: 2px; text-transform: uppercase; }}
-                .chart-content {{ font-weight: bold; color: #d62728; }}
-                .center-box {{ grid-column: 2 / 4; grid-row: 2 / 4; background-color: #ffffff; display: flex; justify-content: center; align-items: center; font-style: italic; color: #333; }}
+                .chart-grid {{ 
+                    display: grid; 
+                    grid-template-columns: 1fr 1fr 1fr 1fr; 
+                    grid-template-rows: 100px 100px 100px 100px; 
+                    gap: 2px; 
+                    background-color: #000; 
+                    border: 2px solid #000; 
+                    width: 100%; 
+                    max-width: 500px; 
+                    margin: auto; 
+                }}
+                .chart-box {{ 
+                    background-color: #ffffff; 
+                    color: #000000; 
+                    padding: 5px; 
+                    font-size: 14px; 
+                    display: flex; 
+                    flex-direction: column; 
+                    justify-content: center; 
+                    align-items: center; 
+                    text-align: center; 
+                    border: 1px solid #ccc; 
+                    position: relative; 
+                    transition: background-color 0.3s ease, color 0.3s ease;
+                }}
+                .chart-label {{ 
+                    font-size: 10px; 
+                    color: #555; 
+                    position: absolute; 
+                    top: 2px; 
+                    left: 2px; 
+                    text-transform: uppercase; 
+                }}
+                .chart-content {{ 
+                    font-weight: bold; 
+                    color: #d62728; 
+                }}
+                .center-box {{ 
+                    grid-column: 2 / 4; 
+                    grid-row: 2 / 4; 
+                    background-color: #ffffff; 
+                    display: flex; 
+                    justify-content: center; 
+                    align-items: center; 
+                    font-style: italic; 
+                    color: #333; 
+                    transition: background-color 0.3s ease, color 0.3s ease;
+                }}
+                @media (prefers-color-scheme: dark) {{
+                    .chart-grid {{
+                        background-color: #1a1a1a;
+                        border-color: #333;
+                    }}
+                    .chart-box {{
+                        background-color: #2a2a2a;
+                        color: #e0e0e0;
+                        border-color: #444;
+                    }}
+                    .chart-label {{
+                        color: #aaa;
+                    }}
+                    .chart-content {{
+                        color: #ff6b6b;
+                    }}
+                    .center-box {{
+                        background-color: #2a2a2a;
+                        color: #d0d0d0;
+                    }}
+                }}
+                [data-theme="dark"] .chart-grid {{
+                    background-color: #1a1a1a;
+                    border-color: #333;
+                }}
+                [data-theme="dark"] .chart-box {{
+                    background-color: #2a2a2a;
+                    color: #e0e0e0;
+                    border-color: #444;
+                }}
+                [data-theme="dark"] .chart-label {{
+                    color: #aaa;
+                }}
+                [data-theme="dark"] .chart-content {{
+                    color: #ff6b6b;
+                }}
+                [data-theme="dark"] .center-box {{
+                    background-color: #2a2a2a;
+                    color: #d0d0d0;
+                }}
             </style>
             <div class="chart-grid">
                 <div class="chart-box"><span class="chart-label">Pisces</span><div class="chart-content">{get_content('Pisces')}</div></div>
@@ -331,7 +425,7 @@ def main():
             </div>
             """
             st.markdown(html_chart, unsafe_allow_html=True)
-            st.caption("South Indian style chart (White Theme). 'As' denotes Ascendant.")
+            st.caption("South Indian style chart (adapts to light/dark mode). 'As' denotes Ascendant.")
             # st.info("Visual Chart disabled for debugging (checking layout issues).")
             
             st.divider()
@@ -364,14 +458,14 @@ def main():
                 # Donut Chart for Elements
                 fig_elem = px.pie(names=list(element_counts.keys()), values=list(element_counts.values()), hole=0.4, title="Elemental Balance")
                 fig_elem.update_traces(textinfo='percent+label')
-                st.plotly_chart(fig_elem, use_container_width=True)
+                st.plotly_chart(fig_elem, width='stretch')
                 with st.expander("What is Elemental Balance?"):
                     st.write("Fire (Energy), Earth (Stability), Air (Intellect), Water (Emotion)")
             
             with col_g2:
                  # Bar Chart for Modalities
                  fig_mod = px.bar(x=list(modality_counts.keys()), y=list(modality_counts.values()), title="Modality Distribution", color=list(modality_counts.keys()))
-                 st.plotly_chart(fig_mod, use_container_width=True)
+                 st.plotly_chart(fig_mod, width='stretch')
                  with st.expander("What is Modality?"):
                     st.write("Cardinal (Leaders), Fixed (Stabilizers), Mutable (Adaptable)")
 
@@ -424,7 +518,7 @@ def main():
                     st.write("### 📅 Detailed Dasha Periods (Antardashas)")
                     fig = px.timeline(df_dasha, x_start="Start", x_end="Finish", y="Major Lord", color="Sub Lord", hover_name="Period", title="Vimshottari Dasha (Mahadasha > Antardasha)")
                     fig.update_yaxes(categoryorder="category ascending")
-                    st.plotly_chart(fig, use_container_width=True)
+                    st.plotly_chart(fig, width='stretch')
                     
                     with st.expander("View Dasha Table"):
                         st.dataframe(df_dasha[["Major Lord", "Sub Lord", "Start", "Finish"]])

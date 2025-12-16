@@ -1,4 +1,11 @@
 streamlit
+plotly
+pandas
+pymongo
+google-generativeai
+certifi
+requests
+streamlit
 google-generativeai
 geopy
 timezonefinder
@@ -10,3 +17,4 @@ pandas
 pymongo
 dnspython
 certifi
+streamlit-folium
