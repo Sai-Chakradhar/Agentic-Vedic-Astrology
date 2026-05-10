@@ -73,7 +73,7 @@ def get_astrology_response(chart_data, user_query, api_key, stream=False):
         return "No models found that support generateContent. Your API key might need to be enabled for specific models in Google AI Studio."
         
     # Priority list
-    priorities = ['models/gemini-1.5-flash', 'models/gemini-1.5-flash-001', 'models/gemini-pro', 'models/gemini-1.0-pro']
+    priorities = ['gemini-3.1-pro-preview','models/gemini-1.5-flash', 'models/gemini-1.5-flash-001', 'models/gemini-pro', 'models/gemini-1.0-pro']
     
     # Determine the model to use
     selected_model = None
