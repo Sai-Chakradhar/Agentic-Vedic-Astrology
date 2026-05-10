@@ -74,7 +74,7 @@ def get_astrology_response(chart_data, user_query, api_key, stream=False):
         
     # Priority list
 
-    priorities = ['models/gemini-2.5-pro-preview-05-06', 'models/gemini-2.0-flash', 'models/gemini-1.5-flash', 'models/gemini-1.5-flash-001', 'models/gemini-pro', 'models/gemini-1.0-pro']
+    priorities = ['models/gemini-3.1-pro-preview', 'models/gemini-2.0-flash', 'models/gemini-1.5-flash', 'models/gemini-1.5-flash-001', 'models/gemini-pro', 'models/gemini-1.0-pro']
     
     # Determine the model to use
     selected_model = None
